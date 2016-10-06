@@ -1,0 +1,17 @@
+{
+  "name": "docker-node-base",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Boilerplate for docker node daemons",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "James Barwell <jb@jamesbarwell.co.uk>",
+  "license": "ISC",
+  "dependencies": {
+    "debug": "^2.2.0",
+    "prometheus-client-js": "^2.3.6"
+  }
+}

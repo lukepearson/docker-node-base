@@ -1,0 +1,9 @@
+#!/usr/bin/with-contenv sh
+
+sleep 2
+
+cd /app
+
+su node
+
+npm start
