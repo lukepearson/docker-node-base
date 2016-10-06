@@ -4,7 +4,7 @@ Features:
 * supervised node daemon
 * fetch secrets from Vault
 * Prometheus metrics endpoint
-* log forwarding
+* config parsing
 
 
 ## A word on node_modules

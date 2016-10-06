@@ -1,14 +1,16 @@
-const http = require('http');
+'use strict'
+const base = require('./base')
 
-const hostname = '127.0.0.1';
-const port = 3000;
+base.setName('example')
 
-const server = http.createServer((req, res) => {
-      res.statusCode = 200;
-        res.setHeader('Content-Type', 'text/plain');
-          res.end('Hello World\n');
-});
+base.config.set({
+    // Port to listen on
+    HTTP_PORT: { type: 'int', default: 3000 },
+    // Name of person to greet
+    GREETING_NAME: { type: 'string', default: 'world' }
+})
 
-server.listen(port, hostname, () => {
-      console.log(`Server running at http://${hostname}:${port}/`);
-});
+base.metrics.startServer(1337)
+
+const app = require('./app')
+app.start()
