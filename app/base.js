@@ -7,6 +7,7 @@ exports.setName = function(value) {
     appName = value
 }
 
+const v8 = require('v8')
 const prometheus = require('prometheus-client-js')
 const debug = require('debug')
 
@@ -99,6 +100,21 @@ function updateMetrics() {
             value: cpuUsage.system
         })
     }
+
+    let v8HeapStats = v8.getHeapStatistics()
+    Object.keys(v8HeapStats).forEach(function(key) {
+        let name = key
+        if (name.substring(name.length - 4) == 'size') {
+            name += '_bytes'
+        }
+
+        BaseMetrics.gauge({
+            name: name,
+            namespace: appName,
+            help: 'V8 heap stats',
+            value: v8HeapStats[key]
+        })
+    })
 }
 setInterval(updateMetrics, 1000)
 
