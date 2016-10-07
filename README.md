@@ -6,6 +6,11 @@ Features:
 * Prometheus metrics endpoint
 * config parsing
 
+Todo:
+* log forwarding to elasticsearch
+* publish a docker container that can be descended from
+* cron scheduling?
+* force apps to expose common http interface?
 
 ## A word on node_modules
 
