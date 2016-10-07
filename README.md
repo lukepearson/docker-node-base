@@ -14,7 +14,7 @@ Todo:
 
 ## A word on node_modules
 
-Please check in your node_moules into the code base. There are a few reasons for this:
+Please check in your node_modules into the code base. There are a few reasons for this:
 * We do not want to depend on npm being available at build time.
 * We do not want to depend on the modules having not upgraded incorrectly, changed, unpublished or hacked on npm.
 * We want to be able to audit changes in third-party code.
