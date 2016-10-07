@@ -143,8 +143,24 @@ exports.config = {
     },
     get: function(key) {
         if (process.env[key]) {
-            return process.env[key]
+            let type = configOpts[key] && configOpts[key]['type']
+            let value = process.env[key]
+
+            if (type == 'string') {
+                return value + ''
+            } else if (type == 'int' || type == 'integer') {
+                return parseInt(value)
+            }
+
+            return value
         }
-        return configOpts[key]['default']
+
+        if (configOpts[key]['default']) {
+            return configOpts[key]['default']
+        }
+
+        throw new Error(
+            'Invalid config value requested: ' + key
+        )
     }
 }
