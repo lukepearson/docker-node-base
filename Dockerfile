@@ -14,6 +14,4 @@ RUN adduser -DH node
 
 COPY /secrets /secrets
 
-COPY /app /app
-
 ENTRYPOINT ["/init"]
