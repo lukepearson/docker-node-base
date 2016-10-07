@@ -12,6 +12,13 @@ Todo:
 * cron scheduling?
 * force apps to expose common http interface?
 
+## Environment variables
+
+You will need to provide the following environment variables to initialise the container:
+* EXCHANGE_PROTO
+* EXCHANGE_ADDR
+* VAULT_GROUP
+
 ## A word on node_modules
 
 Please check in your node_modules into the code base. There are a few reasons for this:
