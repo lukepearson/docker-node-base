@@ -6,4 +6,4 @@ cd /app
 
 su node
 
-DEBUG=node.* npm start
+DEBUG=app.* npm start

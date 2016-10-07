@@ -110,7 +110,7 @@ exports.metrics = BaseMetrics
 
 
 function makeLogger(name, sendStdErr) {
-    var logger = debug('node.' + name)
+    var logger = debug('app.' + name)
 
     if (sendStdErr) {
         logger.log = console.error.bind(console)
