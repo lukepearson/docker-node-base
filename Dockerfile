@@ -2,6 +2,7 @@ FROM alpine:3.4
 MAINTAINER infinityworks
 
 RUN apk --update add \
+    curl \
     nodejs
 
 COPY /s6/s6-overlay-amd64.tar.gz /tmp/
