@@ -8,10 +8,10 @@ Features:
 
 Todo:
 * log forwarding to elasticsearch
-* publish a docker container that can be descended from
 * cron scheduling?
 * force apps to expose common http interface?
-* load balancer probe endpoint
+** could auto-wrap these with metrics, and auto-document through a /endpoints page
+* load balancer probe endpoint?
 
 ## How to use
 
@@ -23,5 +23,6 @@ Todo:
 
 You will need to provide the following environment variables to initialise the container:
 * EXCHANGE_PROTO
-* EXCHANGE_ADDR
+* EXCHANGE_HOST
+* VAULT_ADDR
 * VAULT_GROUP
