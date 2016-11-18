@@ -17,6 +17,8 @@ RUN adduser -DH node && \
 
 COPY /secrets /secrets
 
+COPY filebeat /etc/filebeat
+
 ENV S6_LOGGING_SCRIPT ""
 
 ENTRYPOINT ["/init"]

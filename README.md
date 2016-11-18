@@ -28,8 +28,19 @@ COPY app /app
 
 ## Environment variables
 
-You will need to provide the following environment variables to initialise the container:
+All environment variables are optional unless stated, though if not set their respective services may fail.
+
+### Secret fetching
+
 * EXCHANGE_PROTO
 * EXCHANGE_HOST
 * VAULT_ADDR
 * VAULT_GROUP
+
+
+### Log forwarding
+
+ELASTICSEARCH_HOST
+ELASTICSEARCH_PORT
+LOG_SERVICE_NAME - used to enrich log meta-data
+HOST_IP - used to enrich log meta-data
