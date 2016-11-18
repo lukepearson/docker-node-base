@@ -11,8 +11,12 @@ RUN tar xzf /tmp/s6-overlay-amd64.tar.gz -C /
 COPY /s6/cont-init.d /etc/cont-init.d
 COPY /s6/services.d /etc/services.d
 
-RUN adduser -DH node
+RUN adduser -DH node && \
+    mkdir -p /var/log/node && \
+    chown nobody: /var/log/node
 
 COPY /secrets /secrets
+
+ENV S6_LOGGING_SCRIPT ""
 
 ENTRYPOINT ["/init"]
