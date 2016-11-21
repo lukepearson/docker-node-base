@@ -15,8 +15,6 @@ RUN adduser -DH node && \
     mkdir -p /var/log/node && \
     chown nobody: /var/log/node
 
-COPY /secrets /secrets
-
 COPY filebeat /etc/filebeat
 
 ENV S6_LOGGING_SCRIPT ""
