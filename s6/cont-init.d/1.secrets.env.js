@@ -3,20 +3,24 @@
 'use strict';
 
 const fs = require('fs');
+const http = require('http');
 const https = require('https');
 
 const outputWritePath = "/var/run/s6/container_environment/";
 
 const vaultGroup = process.env.VAULT_GROUP;
 const exchangeAddress = process.env.EXCHANGE_HOST;
-const exchangeCaPath = process.env.EXCHANGE_CA_PATH;
+const overrideVaultToken = process.env.VAULT_TOKEN;
 
-const vaultHost = getVaultHost();
+const vaultInfo = getVaultHost();
 
-if (!vaultHost) {
+if (!vaultInfo) {
   console.error('Unable to fetch secrets');
   process.exit(1)
 }
+
+const vaultSecure = vaultInfo.secure
+const vaultHost = vaultInfo.host
 
 let vaultToken;
 getAuthenticationToken(onAuthenticationToken);
@@ -42,17 +46,17 @@ function onSecretListFromVault(err, secretList) {
 // Helpers
 
 function getAuthenticationToken(callback) {
+  if (overrideVaultToken) {
+    return callback(null, overrideVaultToken)
+  }
+
   let opts = {
     hostname: exchangeAddress,
     path: `/group/token/${ vaultGroup }`,
-    port: 443,
+    port: 443
   }
 
-  if (exchangeCaPath) {
-    opts.ca = loadExchangeCa(exchangeCaPath)
-  }
-
-  makeRequest(opts, callback)
+  makeRequest(opts, true, callback)
 }
 
 function getSecretListFromVault(callback) {
@@ -63,15 +67,25 @@ function getSecretListFromVault(callback) {
     headers: {
       'x-vault-token': vaultToken
     }
-  }, (err, response) => {
+  }, vaultSecure, (err, response) => {
     if (err) {
         return callback(err)
     }
 
-    let secretList = JSON.parse(response).data.keys;
+    let parsedResponse
+    try {
+        parsedResponse = JSON.parse(response)
+    } catch (e) {
+        return callback(e)
+    }
+
+    if (!parsedResponse.data || !parsedResponse.data.keys) {
+        return callback(new Error('Cannot find .data.keys in response'))
+    }
+
+    let secretList = parsedResponse.data.keys;
     callback(null, secretList);
   });
-
 }
 
 
@@ -83,12 +97,19 @@ function getSecretsFromVault(key, callback) {
     headers: {
       'x-vault-token': vaultToken
     }
-  }, (err, response) => {
+  }, vaultSecure, (err, response) => {
     if (err) {
         return callback(err)
     }
-    let secrets = JSON.parse(response);
-    callback(null, secrets.data);
+
+    let parsedResponse
+    try {
+        parsedResponse = JSON.parse(response)
+    } catch (e) {
+        return callback(e)
+    }
+
+    callback(null, parsedResponse.data);
   });
 
 }
@@ -110,8 +131,10 @@ function writeSecretData(err, secrets) {
   });
 }
 
-function makeRequest(options, callback) {
-  let req = https.request(options, function(response) {
+function makeRequest(options, secure, callback) {
+  let httpRequest = secure ? https.request : http.request
+
+  let req = httpRequest(options, function(response) {
     let responseData = ''
     response.on('data', function(chunk) {
       responseData += chunk;
@@ -135,16 +158,16 @@ function getVaultHost() {
     return
   }
 
-  let hostname = process.env.VAULT_ADDR.match(/:\/\/(.*):/);
-  if (hostname == null) {
+  let match = process.env.VAULT_ADDR.match(/([a-z]+):\/\/(.*):?/)
+
+  if (!match || !match[1] || !match[2]) {
     console.warn(
       `Unable to find vault host. Environment variable $VAULT_ADDR is set to ${process.env.VAULT_ADDR}`
     );
     return
   }
-  return hostname[1];
-}
-
-function loadExchangeCa(path) {
-  return fs.readFileSync(path).toString()
+  return {
+    secure: match[1] === 'https',
+    host: match[2]
+  }
 }
