@@ -3,24 +3,38 @@
 'use strict';
 
 const fs = require('fs');
-const http = require('https');
+const https = require('https');
+
 const outputWritePath = "/var/run/s6/container_environment/";
+
 const vaultGroup = process.env.VAULT_GROUP;
 const exchangeAddress = process.env.EXCHANGE_HOST;
+const exchangeCaPath = process.env.EXCHANGE_CA_PATH;
+
 const vaultHost = getVaultHost();
 
-let vaultToken;
 if (!vaultHost) {
-  console.warn('Unable to fetch secrets. Skipping...');
-} else {
-  vaultToken = getAuthenticationToken(onAuthenticationToken);
+  console.error('Unable to fetch secrets');
+  process.exit(1)
 }
 
-function onAuthenticationToken() {
+let vaultToken;
+getAuthenticationToken(onAuthenticationToken);
+
+function onAuthenticationToken(err, token) {
+  if (err) {
+      console.error(err)
+      process.exit(1)
+  }
+  vaultToken = token
   getSecretListFromVault(onSecretListFromVault)
 }
 
-function onSecretListFromVault(secretList) {
+function onSecretListFromVault(err, secretList) {
+  if (err) {
+    console.error(err)
+    process.exit(1)
+  }
   secretList.forEach(getSecretAndWrite);
 }
 
@@ -28,35 +42,40 @@ function onSecretListFromVault(secretList) {
 // Helpers
 
 function getAuthenticationToken(callback) {
-  makeRequest({
-    host: exchangeAddress,
+  let opts = {
+    hostname: exchangeAddress,
     path: `/group/token/${ vaultGroup }`,
-    port: '443',
-  }, (response) => {
-    callback(response);
-  });
+    port: 443,
+  }
 
+  if (exchangeCaPath) {
+    opts.ca = loadExchangeCa(exchangeCaPath)
+  }
+
+  makeRequest(opts, callback)
 }
 
 function getSecretListFromVault(callback) {
-
   makeRequest({
     host: vaultHost,
     path: `/v1/secret/${ vaultGroup }/?list=true`,
-    port: '8200',
+    port: 8200,
     headers: {
       'x-vault-token': vaultToken
     }
-  }, (response) => {
+  }, (err, response) => {
+    if (err) {
+        return callback(err)
+    }
+
     let secretList = JSON.parse(response).data.keys;
-    callback(secretList);
+    callback(null, secretList);
   });
 
 }
 
 
 function getSecretsFromVault(key, callback) {
-
   makeRequest({
     host: vaultHost,
     path: `/v1/secret/${ vaultGroup }/${ key }`,
@@ -64,9 +83,12 @@ function getSecretsFromVault(key, callback) {
     headers: {
       'x-vault-token': vaultToken
     }
-  }, (response) => {
+  }, (err, response) => {
+    if (err) {
+        return callback(err)
+    }
     let secrets = JSON.parse(response);
-    callback(secrets.data);
+    callback(null, secrets.data);
   });
 
 }
@@ -75,7 +97,12 @@ function getSecretAndWrite(secret) {
   getSecretsFromVault(secret, writeSecretData);
 }
 
-function writeSecretData(secrets) {
+function writeSecretData(err, secrets) {
+  if (err) {
+    console.error(err)
+    process.exit(1)
+  }
+
   Object.keys(secrets).forEach((key) => {
     let secret = secrets[key];
     console.log(`Writing secret: ${key}`);
@@ -84,31 +111,40 @@ function writeSecretData(secrets) {
 }
 
 function makeRequest(options, callback) {
-  http.request(options, function(response) {
+  let req = https.request(options, function(response) {
     let responseData = ''
     response.on('data', function(chunk) {
       responseData += chunk;
     });
 
     response.on('end', function() {
-      callback(responseData);
+      callback(null, responseData);
     });
   });
+
+  req.end()
+
+  req.on('error', (e) => {
+    return callback(e)
+  })
 }
 
 function getVaultHost() {
-
   if (!process.env.VAULT_ADDR) {
-    console.log(`$VAULT_ADDR is not set!`);
-    return null;
+    console.warn(`$VAULT_ADDR is not set!`);
+    return
   }
 
   let hostname = process.env.VAULT_ADDR.match(/:\/\/(.*):/);
   if (hostname == null) {
-    console.log(
-      `Unable to find vault host. Environtment $VAULT_ADDR is set to ${process.env.VAULT_ADDR}`
+    console.warn(
+      `Unable to find vault host. Environment variable $VAULT_ADDR is set to ${process.env.VAULT_ADDR}`
     );
-    return null;
+    return
   }
   return hostname[1];
+}
+
+function loadExchangeCa(path) {
+  return fs.readFileSync(path).toString()
 }
