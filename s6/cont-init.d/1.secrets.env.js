@@ -208,11 +208,13 @@ function writeSecretData(err, secrets) {
         process.exit(1)
     }
 
-    Object.keys(secrets).forEach((key) => {
-        let secret = secrets[key];
-        console.log(`Writing secret: ${key}`);
-        fs.writeFileSync(outputWritePath + key, secret);
-    });
+    if (secrets) {
+        Object.keys(secrets).forEach((key) => {
+            let secret = secrets[key];
+            console.log(`Writing secret: ${key}`);
+            fs.writeFileSync(outputWritePath + key, secret);
+        });
+    }
 }
 
 function makeRequest(options, secure, callback) {
