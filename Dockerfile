@@ -16,5 +16,6 @@ RUN adduser -DH node
 COPY filebeat /etc/filebeat
 
 ENV S6_LOGGING_SCRIPT ""
+ENV S6_BEHAVIOUR_IF_STAGE2_FAILS=2
 
 ENTRYPOINT ["/init"]
