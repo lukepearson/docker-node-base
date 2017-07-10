@@ -1,6 +1,6 @@
 A boilerplate project for running a nodejs daemon inside a Docker container.
 
-Intended to be used in combination with: https://github.com/infinityworksltd/node-app-base
+Intended to be used in combination with: https://github.com/infinityworks/node-app-base
 
 Features:
 * supervised node daemon
