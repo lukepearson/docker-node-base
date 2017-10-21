@@ -6,4 +6,4 @@ cd /app
 
 su node
 
-DEBUG=app.* npm start
+DEBUG=app.* DEBUG_COLORS=0 npm start

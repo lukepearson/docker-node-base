@@ -1,0 +1,6 @@
+#!/bin/sh
+
+mkdir -p /var/log/node
+chown nobody: /var/log/node
+
+touch /var/log/container.log
